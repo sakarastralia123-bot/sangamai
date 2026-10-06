@@ -1,0 +1,2 @@
+# sangamai
+sangamonly
