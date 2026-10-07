@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">60.71% </span>
+                <span class="strong">69.64% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>34/56</span>
+                <span class='fraction'>39/56</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">46.66% </span>
+                <span class="strong">53.33% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>7/15</span>
+                <span class='fraction'>8/15</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">60% </span>
+                <span class="strong">70% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>6/10</span>
+                <span class='fraction'>7/10</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">60.71% </span>
+                <span class="strong">69.64% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>34/56</span>
+                <span class='fraction'>39/56</span>
             </div>
         
             
@@ -198,7 +198,11 @@
 <a name='L133'></a><a href='#L133'>133</a>
 <a name='L134'></a><a href='#L134'>134</a>
 <a name='L135'></a><a href='#L135'>135</a>
-<a name='L136'></a><a href='#L136'>136</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
+<a name='L136'></a><a href='#L136'>136</a>
+<a name='L137'></a><a href='#L137'>137</a>
+<a name='L138'></a><a href='#L138'>138</a>
+<a name='L139'></a><a href='#L139'>139</a>
+<a name='L140'></a><a href='#L140'>140</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
@@ -216,8 +220,12 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -257,9 +265,9 @@
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -286,19 +294,19 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -343,19 +351,23 @@ function setRefreshTokenCookie(res, token, maxAgeDays = 7) {
   res.cookie('refreshToken', token, {
     httpOnly: true,
     secure: isProduction,
-    sameSite: isProduction ? <span class="branch-0 cbranch-no" title="branch not covered" >'strict' </span>: 'lax',
+    // Split deploy: UI and API live on different domains (cross-site),
+    // so Lax/Strict would block the cookie on cross-site fetches and kill
+    // silent refresh. None + Secure is required in production.
+    // (Same-origin localhost dev keeps Lax.)
+    sameSite: isProduction ? <span class="branch-0 cbranch-no" title="branch not covered" >'none' </span>: 'lax',
     path: '/api/auth',
     maxAge: maxAgeDays * 24 * 60 * 60 * 1000,
     signed: true,
   });
 }
 &nbsp;
-function <span class="fstat-no" title="function not covered" >clearRefreshTokenCookie(</span>res) {
-  const isProduction = <span class="cstat-no" title="statement not covered" >process.env.NODE_ENV === 'production';</span>
-<span class="cstat-no" title="statement not covered" >  res.clearCookie('refreshToken', {</span>
+function clearRefreshTokenCookie(res) {
+  const isProduction = process.env.NODE_ENV === 'production';
+  res.clearCookie('refreshToken', {
     httpOnly: true,
     secure: isProduction,
-    sameSite: isProduction ? 'strict' : 'lax',
+    sameSite: isProduction ? <span class="branch-0 cbranch-no" title="branch not covered" >'none' </span>: 'lax',
     path: '/api/auth',
     signed: true,
   });
@@ -392,9 +404,9 @@ const logout = asyncHandler(async (req, res) =&gt; {
   const refreshToken = req.signedCookies?.refreshToken;
 &nbsp;
   await authService.logoutUser(userId, refreshToken, req);
-<span class="cstat-no" title="statement not covered" >  clearRefreshTokenCookie(res);</span>
+  clearRefreshTokenCookie(res);
 &nbsp;
-<span class="cstat-no" title="statement not covered" >  res.status(200).json(</span>
+  res.status(200).json(
     ApiResponse.success({}, 'Logged out successfully')
   );
 });
@@ -433,7 +445,7 @@ const resetPassword = asyncHandler(async (req, res) =&gt; {
 &nbsp;
   await authService.resetPassword(token, password, req);
 &nbsp;
-<span class="cstat-no" title="statement not covered" >  res.status(200).json(</span>
+  res.status(200).json(
     ApiResponse.success({}, 'Password reset successful')
   );
 });
@@ -475,7 +487,7 @@ module.exports = {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-10-06T13:41:17.906Z
+                at 2026-10-07T05:37:03.986Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

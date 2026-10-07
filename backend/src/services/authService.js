@@ -2,7 +2,7 @@ const User = require('../models/User');
 const { validatePasswordStrength } = require('../models/User');
 const { getClientIp, getUserAgent } = require('../utils/request');
 const { generateAccessToken, verifyAccessToken } = require('./tokenService');
-const { createSession, findValidSession, revokeSession, revokeAllUserSessions, rotateSession, detectTokenReuse, handleTokenReuse } = require('./sessionService');
+const { createSession, findValidSession, revokeSession, revokeSessionByToken, revokeAllUserSessions, rotateSession, detectTokenReuse, handleTokenReuse } = require('./sessionService');
 const { sendPasswordResetEmail, sendPasswordChangeNotification, sendExistingUserNotification } = require('./emailService');
 const { rateLimit, password, frontendUrl } = require('../config/env');
 const ApiError = require('../utils/ApiError');
@@ -236,17 +236,6 @@ async function revokeAllSessions(userId, reason = 'user_request', req) {
   const count = await revokeAllUserSessions(userId, reason);
   authEvent('sessions_revoked', { userId, count, reason, ip });
   return { revokedCount: count };
-}
-
-async function revokeSessionByToken(refreshToken, reason = 'logout') {
-  const crypto = require('crypto');
-  const tokenHash = crypto.createHash('sha256').update(refreshToken).digest('hex');
-  const session = await (await import('../models/Session')).default.findOne({ refreshTokenHash: tokenHash, revokedAt: null });
-  if (session) {
-    await revokeSession(session._id, reason);
-    return true;
-  }
-  return false;
 }
 
 module.exports = {

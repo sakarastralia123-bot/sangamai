@@ -6,8 +6,22 @@ const app = require('../src/app');
 const User = require('../src/models/User');
 const Session = require('../src/models/Session');
 const { validatePasswordStrength } = require('../src/models/User');
+const emailService = require('../src/services/emailService');
+
+// Capture the PLAINTEXT reset token (only ever present in the email) so
+// tests exercise the real forgot → reset flow instead of misusing the DB hash.
+jest.mock('../src/services/emailService', () => {
+  const actual = jest.requireActual('../src/services/emailService');
+  return {
+    ...actual,
+    sendPasswordResetEmail: jest.fn(async () => ({ success: true })),
+  };
+});
 
 describe('Security Regression Tests', () => {
+  beforeEach(() => {
+    emailService.sendPasswordResetEmail.mockClear();
+  });
   const validPassword = 'SecurePass123!';
   const validUser = {
     name: 'Test User',
@@ -242,10 +256,12 @@ describe('Security Regression Tests', () => {
       expect(dbUser.passwordResetExpires.getTime()).toBeLessThanOrEqual(Date.now() + 15 * 60 * 1000 + 1000);
       expect(dbUser.passwordResetExpires.getTime()).toBeGreaterThan(Date.now());
 
-      const resetToken = dbUser.passwordResetToken;
-      const plainToken = crypto.randomBytes(32).toString('hex');
-      const hashed = crypto.createHash('sha256').update(plainToken).digest('hex');
-      expect(hashed).toBe(resetToken);
+      // The plaintext token exists only in the email — prove the DB holds
+      // exactly its SHA-256 hash (a DB leak must not yield usable tokens).
+      const sentToken = emailService.sendPasswordResetEmail.mock.calls.at(-1)[1];
+      expect(sentToken).toMatch(/^[a-f0-9]{64}$/);
+      const hashed = crypto.createHash('sha256').update(sentToken).digest('hex');
+      expect(hashed).toBe(dbUser.passwordResetToken);
     });
 
     test('Password reset revokes all sessions', async () => {
@@ -262,10 +278,12 @@ describe('Security Regression Tests', () => {
 
       const dbUser = await User.findOne({ email: user.email });
       expect(dbUser).not.toBeNull();
-      const resetToken = dbUser.passwordResetToken;
+      // The endpoint expects the PLAINTEXT token from the email (it hashes
+      // for lookup) — the DB hash alone must never work as a credential.
+      const sentToken = emailService.sendPasswordResetEmail.mock.calls.at(-1)[1];
 
       await request(app)
-        .post(`/api/auth/reset-password/${resetToken}`)
+        .post(`/api/auth/reset-password/${sentToken}`)
         .send({ password: 'NewSecurePass123!', confirmPassword: 'NewSecurePass123!' });
 
       const sessions = await Session.find({ userId: dbUser._id });
@@ -386,11 +404,21 @@ describe('Security Regression Tests', () => {
         .post('/api/auth/login')
         .send({ email: user.email, password: validPassword });
 
-      const dbUser = await User.findOne({ email: user.email });
-      dbUser.password = 'NewPassword123!';
-      await dbUser.save();
+      // A real credential change goes through the reset flow (3 live
+      // sessions at this point: register + 2 logins) — all must die.
+      await request(app)
+        .post('/api/auth/forgot-password')
+        .send({ email: user.email });
+      const sentToken = emailService.sendPasswordResetEmail.mock.calls.at(-1)[1];
 
+      const resetRes = await request(app)
+        .post(`/api/auth/reset-password/${sentToken}`)
+        .send({ password: 'NewSecurePass123!', confirmPassword: 'NewSecurePass123!' });
+      expect(resetRes.status).toBe(200);
+
+      const dbUser = await User.findOne({ email: user.email });
       const sessions = await Session.find({ userId: dbUser._id });
+      expect(sessions.length).toBe(3);
       for (const session of sessions) {
         expect(session.revokedAt).not.toBeNull();
         expect(session.revokedReason).toBe('password_change');
@@ -410,13 +438,19 @@ describe('Security Regression Tests', () => {
       expect(cookies).toBeDefined();
       const refreshCookie = cookies.find(c => c.startsWith('refreshToken='));
       expect(refreshCookie).toBeDefined();
-      const token = refreshCookie.split(';')[0].split('=')[1];
+      // NOTE: the signed value is base64 and may itself contain '=' padding —
+      // split on the FIRST '=' only, or the signature truncates and logout
+      // silently revokes nothing (real browsers don't hand-parse cookies).
+      const token = refreshCookie.split(';')[0].split('=').slice(1).join('=');
 
       await request(app)
         .post('/api/auth/logout')
         .set('Cookie', [`refreshToken=${token}`]);
 
-      const sessions = await Session.find({ userId: (await User.findOne({ email: user.email }))._id });
+      // Newest session first: [0] is the login session (revoked by logout),
+      // while the older register session stays untouched.
+      const sessions = await Session.find({ userId: (await User.findOne({ email: user.email }))._id })
+        .sort({ createdAt: -1 });
       expect(sessions[0].revokedAt).not.toBeNull();
       expect(sessions[0].revokedReason).toBe('logout');
     });
