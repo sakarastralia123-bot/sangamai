@@ -173,7 +173,7 @@ maxAge: 86400
 {
   httpOnly: true,        // JS cannot access
   secure: true,          // HTTPS only (production)
-  sameSite: 'lax',       // CSRF protection on single-domain deploy
+  sameSite: 'none',      // cross-site (split UI/API domains) + Secure in prod
   path: '/api/auth',     // Only sent to auth routes
   maxAge: 7 days,        // Matches refresh token expiry
   signed: true           // Tamper detection

@@ -8,10 +8,11 @@ function setRefreshTokenCookie(res, token, maxAgeDays = 7) {
   res.cookie('refreshToken', token, {
     httpOnly: true,
     secure: isProduction,
-    // Single-domain deploy: UI and API share one origin, so Lax gives
-    // real CSRF protection while still sending on same-site fetches.
-    // (Same-origin localhost dev also uses Lax.)
-    sameSite: 'lax',
+    // Split deploy: UI and API live on different domains (cross-site),
+    // so Lax/Strict would block the cookie on cross-site fetches and kill
+    // silent refresh. None + Secure is required in production.
+    // (Same-origin localhost dev keeps Lax.)
+    sameSite: isProduction ? 'none' : 'lax',
     path: '/api/auth',
     maxAge: maxAgeDays * 24 * 60 * 60 * 1000,
     signed: true,
@@ -23,7 +24,7 @@ function clearRefreshTokenCookie(res) {
   res.clearCookie('refreshToken', {
     httpOnly: true,
     secure: isProduction,
-    sameSite: 'lax',
+    sameSite: isProduction ? 'none' : 'lax',
     path: '/api/auth',
     signed: true,
   });
