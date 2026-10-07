@@ -2,10 +2,11 @@ import axios from 'axios'
 import { getAccessToken, setAccessToken, clearAccessToken } from './tokenStore'
 
 const api = axios.create({
-  // Split deploy: UI (Vercel) and API (Render/Vercel-backend) are on
-  // different domains, so production MUST set VITE_API_URL to the API
-  // origin + /api (e.g. https://xxx.onrender.com/api) and redeploy.
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api',
+  // Split deploy: the live API is the default so production works with
+  // zero configuration. Local dev overrides this via frontend/.env
+  // (VITE_API_URL=http://localhost:5000/api, gitignored) or the Vite /api
+  // proxy. VITE_API_URL on Vercel still wins if set explicitly.
+  baseURL: import.meta.env.VITE_API_URL || 'https://sangamai-2.onrender.com/api',
   withCredentials: true,
   headers: { 'Content-Type': 'application/json' },
   timeout: 20000,
