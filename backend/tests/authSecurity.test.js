@@ -212,6 +212,74 @@ describe('Security Regression Tests', () => {
     });
   });
 
+  describe('Spray Protection (cross-email velocity)', () => {
+    const { resetSprayStore } = require('../src/middleware/sprayProtection');
+
+    test('Many distinct emails from one IP trips 429 with generic message', async () => {
+      process.env.SPRAY_EMAIL_THRESHOLD = '3';
+      resetSprayStore();
+      try {
+        let lastStatus = 0;
+        let lastBody = {};
+        for (let i = 0; i < 5; i++) {
+          const res = await request(app)
+            .post('/api/auth/login')
+            .send({ email: `spray${i}@example.com`, password: 'wrong' });
+          lastStatus = res.status;
+          lastBody = res.body;
+        }
+        expect(lastStatus).toBe(429);
+        expect(lastBody.message).toBe('Too many requests, please try again later');
+      } finally {
+        process.env.SPRAY_EMAIL_THRESHOLD = '10000';
+        resetSprayStore();
+      }
+    });
+
+    test('Repeated attempts on ONE email do not trip the spray guard', async () => {
+      process.env.SPRAY_EMAIL_THRESHOLD = '3';
+      resetSprayStore();
+      try {
+        for (let i = 0; i < 4; i++) {
+          const res = await request(app)
+            .post('/api/auth/login')
+            .send({ email: 'single@example.com', password: 'wrong' });
+          expect(res.status).toBe(401); // one distinct email: spray stays quiet
+        }
+      } finally {
+        process.env.SPRAY_EMAIL_THRESHOLD = '10000';
+        resetSprayStore();
+      }
+    });
+
+    test('Velocity window expiry resets the count', async () => {
+      process.env.SPRAY_EMAIL_THRESHOLD = '2';
+      process.env.SPRAY_WINDOW_MS = '100';
+      resetSprayStore();
+      try {
+        for (let i = 0; i < 3; i++) {
+          await request(app)
+            .post('/api/auth/login')
+            .send({ email: `win${i}@example.com`, password: 'wrong' });
+        }
+        const blocked = await request(app)
+          .post('/api/auth/login')
+          .send({ email: 'win9@example.com', password: 'wrong' });
+        expect(blocked.status).toBe(429);
+
+        await new Promise((r) => setTimeout(r, 400));
+        const after = await request(app)
+          .post('/api/auth/login')
+          .send({ email: 'fresh@example.com', password: 'wrong' });
+        expect(after.status).toBe(401);
+      } finally {
+        process.env.SPRAY_EMAIL_THRESHOLD = '10000';
+        process.env.SPRAY_WINDOW_MS = '900000';
+        resetSprayStore();
+      }
+    });
+  });
+
   describe('Rate Limiting', () => {
     test('Auth rate limit triggers after multiple attempts', async () => {
       const user = makeUniqueUser('ratelimit');

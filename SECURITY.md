@@ -137,6 +137,7 @@ Token Refresh (/api/auth/refresh-token)
 | Auth endpoints | 5 req | 15 min | IP + email |
 | Per-account | 10 failed | 1 hour | email |
 | Password reset | 3 req | 1 hour | IP + email |
+| Spray guard | 20 distinct emails | 15 min | IP (login + forgot-password) |
 
 ### Progressive Delay
 - After 3rd failed attempt: +1s delay

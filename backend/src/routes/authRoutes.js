@@ -3,6 +3,7 @@ const authController = require('../controllers/authController');
 const validateRequest = require('../middleware/validateRequest');
 const { protect, verifyRefreshToken } = require('../middleware/auth');
 const { authLimiter, passwordResetLimiter, bodySizeLimiter, strictSchemaValidation } = require('../middleware/rateLimiter');
+const { sprayGuard } = require('../middleware/sprayProtection');
 const { registerValidator, loginValidator, forgotPasswordValidator, resetPasswordValidator, revokeSessionValidator } = require('../validators/authValidators');
 
 const router = express.Router();
@@ -25,6 +26,7 @@ router.post(
 router.post(
   '/login',
   authLimiter,
+  sprayGuard(),
   bodySizeLimiter,
   loginValidator,
   validateRequest,
@@ -59,6 +61,7 @@ router.post(
 router.post(
   '/forgot-password',
   passwordResetLimiter,
+  sprayGuard(),
   bodySizeLimiter,
   forgotPasswordValidator,
   validateRequest,

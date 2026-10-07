@@ -22,6 +22,10 @@ beforeAll(async () => {
   process.env.RATE_LIMIT_WINDOW_MS = '900000';
   process.env.RATE_LIMIT_MAX_REQUESTS = '100';
   process.env.AUTH_RATE_LIMIT_MAX = '5';
+  // The suite hammers one IP with dozens of unique emails — keep the spray
+  // guard effectively off except in tests that set it explicitly.
+  process.env.SPRAY_EMAIL_THRESHOLD = '10000';
+  process.env.SPRAY_WINDOW_MS = '900000';
   process.env.ACCOUNT_LOCK_THRESHOLD = '10';
   process.env.ACCOUNT_LOCK_DURATION_MS = '1800000';
   process.env.MIN_PASSWORD_LENGTH = '12';

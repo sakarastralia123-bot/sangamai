@@ -1,3 +1,4 @@
+const bcrypt = require('bcryptjs');
 const User = require('../models/User');
 const { validatePasswordStrength } = require('../models/User');
 const { getClientIp, getUserAgent } = require('../utils/request');
@@ -87,7 +88,10 @@ async function loginUser(data, req) {
   const dummyHash = '$2b$12$dummyhashdummyhashdummyhashdummyhashdummyhashdummyhashdummy';
 
   if (!user) {
-    await user?.comparePassword?.(plainPassword) || (await import('bcryptjs')).default.compare(plainPassword, dummyHash);
+    // Dummy compare burns ~equal time as a real check (timing-attack
+    // defense). Static require: the previous dynamic import() threw under
+    // Jest/sandboxed runtimes and turned this path into a 500.
+    await bcrypt.compare(plainPassword, dummyHash);
     authEvent('login_failed_user_not_found', { email: cleanEmail, ip });
     throw ApiError.unauthorized('Invalid credentials');
   }
