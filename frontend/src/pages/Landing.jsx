@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import BackgroundFX from '../components/BackgroundFX';
+import CinematicHero from '../components/CinematicHero';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import Reveal from '../components/Reveal';
@@ -17,76 +17,6 @@ const COLOR_MAP = {
   emerald: 'from-emerald-500/25 to-teal-500/10 border-emerald-500/30 text-emerald-300',
   amber: 'from-amber-500/25 to-yellow-500/10 border-amber-500/30 text-amber-300',
 };
-
-/* ── Live chat simulation (hero) ─────────────────────────────── */
-const CHAT_SCRIPT = [
-  { from: 'user', text: 'hajur, bholi bihan dentist appointment milcha?' },
-  { from: 'ai', text: 'Namaste! 🙏 Bholi bihan 9:30 ra 11:00 khali cha. Kun time milcha hajur lai?' },
-  { from: 'user', text: '9:30 thik cha. price kati ho root canal ko?' },
-  { from: 'ai', text: '9:30 ✅ book gariyo! Root canal Rs. 12,000–18,000 (X-ray pachi confirm). Reminder + location WhatsApp ma pathaye. 🙏' },
-];
-
-function HeroChat() {
-  const [visible, setVisible] = useState(0);
-  useEffect(() => {
-    // reveal messages one by one, hold full thread, then restart
-    if (visible < CHAT_SCRIPT.length) {
-      const t = setTimeout(() => setVisible((v) => v + 1), visible === 0 ? 900 : 1400);
-      return () => clearTimeout(t);
-    }
-    const restart = setTimeout(() => setVisible(0), 4500);
-    return () => clearTimeout(restart);
-  }, [visible]);
-
-  return (
-    <div className="card-glass overflow-hidden">
-      <div className="flex items-center gap-3 border-b border-white/10 px-5 py-3.5">
-        <span className="flex gap-1.5">
-          <i className="h-2.5 w-2.5 rounded-full bg-red-400/80" />
-          <i className="h-2.5 w-2.5 rounded-full bg-amber-400/80" />
-          <i className="h-2.5 w-2.5 rounded-full bg-emerald-400/80" />
-        </span>
-        <span className="text-[12px] font-medium text-slate-300">WhatsApp Business · Himal Dental</span>
-        <span className="ml-auto flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-2.5 py-1 text-[11px] font-semibold text-emerald-300">
-          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" /> AI online
-        </span>
-      </div>
-      <div className="space-y-3 px-5 py-5 min-h-[280px]">
-        {CHAT_SCRIPT.slice(0, visible).map((m, i) => (
-          <div key={i} className={`flex ${m.from === 'user' ? 'justify-end' : 'justify-start'}`}>
-            <div
-              className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-[13px] leading-relaxed ${
-                m.from === 'user'
-                  ? 'rounded-br-md bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white'
-                  : 'rounded-bl-md border border-white/10 bg-white/5 text-slate-200'
-              }`}
-            >
-              {m.from === 'ai' && (
-                <div className="mb-1 flex items-center gap-1.5 text-[11px] font-semibold text-cyan-300">
-                  <span className="material-symbols-outlined text-[14px]">smart_toy</span> Receptionist AI · 8s
-                </div>
-              )}
-              {m.text}
-            </div>
-          </div>
-        ))}
-        {visible < CHAT_SCRIPT.length && (
-          <div className="flex justify-start">
-            <div className="flex gap-1 rounded-2xl rounded-bl-md border border-white/10 bg-white/5 px-4 py-3">
-              {[0, 1, 2].map((d) => (
-                <span key={d} className="h-1.5 w-1.5 animate-bounce rounded-full bg-slate-400" style={{ animationDelay: `${d * 0.15}s` }} />
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
-      <div className="flex items-center justify-between border-t border-white/10 bg-white/[0.02] px-5 py-3 text-[11px] text-slate-500">
-        <span>✓ Booked · ✓ Reminder set · ✓ eSewa link sent</span>
-        <span className="font-mono text-emerald-300">+Rs. 15,000 captured</span>
-      </div>
-    </div>
-  );
-}
 
 function Ticker() {
   const row = [...TICKER_ITEMS, ...TICKER_ITEMS];
@@ -115,94 +45,36 @@ export default function Landing() {
     <div className="relative min-h-screen bg-[#050505] text-slate-200">
       <Navbar />
 
-      {/* ═══ HERO — cinematic ═══ */}
-      <section className="relative overflow-hidden pb-16 pt-[130px] sm:pt-[150px]">
-        <BackgroundFX />
-        <div className="relative z-10 mx-auto grid max-w-7xl items-center gap-12 px-4 sm:px-6 lg:grid-cols-[1.05fr_0.95fr]">
-          <div>
-            <Reveal>
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-[12px] font-medium text-slate-300 backdrop-blur">
-                  <span className="flex -space-x-2">
-                    {['AS', 'RT', 'PM'].map((x) => (
-                      <span key={x} className="flex h-5 w-5 items-center justify-center rounded-full border border-black bg-gradient-to-br from-violet-500 to-cyan-500 text-[8px] font-bold text-white">{x}</span>
-                    ))}
-                  </span>
-                  Trusted by 480+ Nepali businesses
+      {/* ═══ HERO — cinematic scroll-linked 300-frame experience ═══ */}
+      <CinematicHero />
+
+      {/* trust + stats strip right under the cinema */}
+      <section className="relative border-b border-white/5 bg-[#050505] py-10">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6">
+          <Reveal>
+            <div className="flex flex-wrap items-center justify-center gap-2">
+              <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-[12px] font-medium text-slate-300 backdrop-blur">
+                <span className="flex -space-x-2">
+                  {['AS', 'RT', 'PM'].map((x) => (
+                    <span key={x} className="flex h-5 w-5 items-center justify-center rounded-full border border-black bg-gradient-to-br from-violet-500 to-cyan-500 text-[8px] font-bold text-white">{x}</span>
+                  ))}
                 </span>
-                <span className="inline-flex items-center gap-1 rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1.5 text-[12px] font-semibold text-amber-300">
-                  ★ 4.9/5 from 212 reviews
-                </span>
-              </div>
-            </Reveal>
-
-            <Reveal delay={100}>
-              {/* Loss-aversion headline — psychology: pain > gain */}
-              <h1 className="mt-6 font-display text-[2.6rem] font-extrabold leading-[1.05] tracking-tight text-white sm:text-6xl lg:text-[4.2rem] text-balance">
-                Every missed message is{' '}
-                <span className="bg-gradient-to-r from-orange-400 via-rose-400 to-fuchsia-400 bg-clip-text text-transparent">
-                  lost revenue.
-                </span>
-                <br />
-                AI employees fix that{' '}
-                <span className="bg-gradient-to-r from-violet-400 via-fuchsia-400 to-cyan-300 bg-clip-text text-transparent">
-                  tonight.
-                </span>
-              </h1>
-            </Reveal>
-
-            <Reveal delay={200}>
-              <p className="mt-6 max-w-xl text-[15px] leading-relaxed text-slate-400 sm:text-base">
-                Sangam.ai hires, trains and manages <strong className="text-slate-200">12 autonomous AI employees</strong> for
-                your clinic, restaurant, gym or shop — answering in <strong className="text-slate-200">Nepali + English</strong>,
-                booking on <strong className="text-slate-200">WhatsApp · Instagram · Voice</strong>, collecting via{' '}
-                <strong className="text-slate-200">eSewa / Khalti</strong>. While you sleep.
-              </p>
-            </Reveal>
-
-            <Reveal delay={300}>
-              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                <Link to="/register" className="btn-primary shimmer-btn text-base !px-8 !py-4">
-                  Hire your first AI employee →
-                </Link>
-                <a href="#how" className="btn-secondary !px-8 !py-4">
-                  <span className="material-symbols-outlined text-[18px]">play_circle</span> See how it works (2 min)
-                </a>
-              </div>
-              <div className="mt-5 flex flex-wrap gap-x-5 gap-y-1.5 text-[12.5px] text-slate-500">
-                <span className="flex items-center gap-1.5"><span className="text-emerald-400">✓</span> 14-day free trial</span>
-                <span className="flex items-center gap-1.5"><span className="text-emerald-400">✓</span> No credit card</span>
-                <span className="flex items-center gap-1.5"><span className="text-emerald-400">✓</span> Live in 48 hours</span>
-                <span className="flex items-center gap-1.5"><span className="text-emerald-400">✓</span> Nepali support</span>
-              </div>
-            </Reveal>
-
-            <Reveal delay={400}>
-              <div className="mt-10 grid grid-cols-2 gap-3 sm:grid-cols-4">
-                {STATS.map((s) => (
-                  <div key={s.label} className="rounded-xl border border-white/10 bg-white/[0.03] p-3.5 backdrop-blur">
-                    <div className="font-display text-xl font-bold text-white">{s.value}</div>
-                    <div className="mt-0.5 text-[12px] font-medium text-slate-300">{s.label}</div>
-                    <div className="text-[11px] text-slate-500">{s.sub}</div>
-                  </div>
-                ))}
-              </div>
-            </Reveal>
-          </div>
-
-          <Reveal delay={250} className="relative">
-            <div className="absolute -inset-4 rounded-[28px] bg-gradient-to-br from-violet-600/20 via-transparent to-cyan-500/20 blur-2xl" />
-            <div className="relative">
-              <HeroChat />
-              {/* floating proof cards */}
-              <div className="absolute -left-4 -top-5 hidden rounded-xl border border-white/10 bg-[#121218]/95 px-3.5 py-2.5 shadow-xl backdrop-blur sm:block">
-                <div className="text-[11px] text-slate-400">No-shows this month</div>
-                <div className="font-display text-lg font-bold text-emerald-300">−43% ↓</div>
-              </div>
-              <div className="absolute -bottom-5 -right-3 hidden rounded-xl border border-white/10 bg-[#121218]/95 px-3.5 py-2.5 shadow-xl backdrop-blur sm:block">
-                <div className="text-[11px] text-slate-400">Recovered revenue</div>
-                <div className="font-display text-lg font-bold text-white">Rs. 84,000 <span className="text-[11px] font-normal text-slate-400">/ mo</span></div>
-              </div>
+                Trusted by 480+ Nepali businesses
+              </span>
+              <span className="inline-flex items-center gap-1 rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1.5 text-[12px] font-semibold text-amber-300">
+                ★ 4.9/5 from 212 reviews
+              </span>
+            </div>
+          </Reveal>
+          <Reveal delay={120}>
+            <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+              {STATS.map((s) => (
+                <div key={s.label} className="rounded-xl border border-white/10 bg-white/[0.03] p-3.5 backdrop-blur">
+                  <div className="font-display text-xl font-bold text-white">{s.value}</div>
+                  <div className="mt-0.5 text-[12px] font-medium text-slate-300">{s.label}</div>
+                  <div className="text-[11px] text-slate-500">{s.sub}</div>
+                </div>
+              ))}
             </div>
           </Reveal>
         </div>
