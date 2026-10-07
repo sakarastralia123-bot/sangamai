@@ -119,8 +119,9 @@ export default function Landing() {
       </section>
 
       {/* ═══ HOW IT WORKS + AI BRAIN ═══ */}
-      <section id="how" className="relative border-y border-white/5 bg-[#0a0f1c] py-24">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6">
+      <section id="how" className="relative overflow-hidden border-y border-white/5 bg-[#0a0f1c] py-24">
+        <ScrollOrb align="right" tone={1} />
+        <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6">
           <SectionHeading
             eyebrow="From chaos to autopilot in 48 hours"
             title="Live in 3 steps. No developers needed."
@@ -192,7 +193,9 @@ export default function Landing() {
       </section>
 
       {/* ═══ INDUSTRIES ═══ */}
-      <section id="industries" className="mx-auto max-w-7xl px-4 py-24 sm:px-6">
+      <section id="industries" className="relative overflow-hidden py-24">
+        <ScrollOrb align="left" tone={2} />
+        <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6">
         <SectionHeading
           eyebrow="Built for your street, not Silicon Valley"
           title="6 industries. One shared pain: the phone that never stops."
@@ -211,11 +214,13 @@ export default function Landing() {
             </Reveal>
           ))}
         </div>
+        </div>
       </section>
 
       {/* ═══ PRICING — anchoring + loss aversion ═══ */}
-      <section id="pricing" className="relative border-y border-white/5 bg-[#0a0f1c] py-24">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6">
+      <section id="pricing" className="relative overflow-hidden border-y border-white/5 bg-[#0a0f1c] py-24">
+        <ScrollOrb align="center" tone={3} />
+        <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6">
           <SectionHeading
             eyebrow="Pricing that pays for itself"
             title={<>One recovered customer covers <span className="bg-gradient-to-r from-emerald-300 to-cyan-300 bg-clip-text text-transparent">the whole month.</span></>}
@@ -296,8 +301,9 @@ export default function Landing() {
       </section>
 
       {/* ═══ DEMO + CONTACT ═══ */}
-      <section id="demo" className="relative border-t border-white/5 bg-[#0a0f1c] py-24">
-        <div className="mx-auto grid max-w-7xl gap-6 px-4 sm:px-6 lg:grid-cols-2">
+      <section id="demo" className="relative overflow-hidden border-t border-white/5 bg-[#0a0f1c] py-24">
+        <ScrollOrb align="center" tone={5} />
+        <div className="relative z-10 mx-auto grid max-w-7xl gap-6 px-4 sm:px-6 lg:grid-cols-2">
           <Reveal>
             <div className="card-glass h-full p-7 sm:p-8">
               <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-orange-300">🎯 Request demo — free staffing plan</span>
@@ -350,7 +356,8 @@ export default function Landing() {
       </section>
 
       {/* ═══ FAQ — objection busting ═══ */}
-      <section id="faq" className="mx-auto max-w-3xl px-4 py-24 sm:px-6">
+      <section id="faq" className="relative overflow-hidden mx-auto max-w-3xl px-4 py-24 sm:px-6">
+        <ScrollOrb align="center" tone={6} />
         <SectionHeading eyebrow="Objections, answered" title="Fair questions. Straight answers." />
         <div className="mt-10 space-y-3">
           {FAQS.map((f, i) => {
@@ -372,6 +379,7 @@ export default function Landing() {
 
       {/* ═══ FINAL CTA ═══ */}
       <section className="relative overflow-hidden border-t border-white/5 py-24">
+        <ScrollOrb align="center" tone={7} />
         <div className="absolute left-1/2 top-1/2 h-[420px] w-[720px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[conic-gradient(from_90deg,rgba(139,92,246,0.25),rgba(6,182,212,0.18),rgba(255,85,0,0.16),rgba(139,92,246,0.25))] blur-[110px]" />
         <Reveal className="relative mx-auto max-w-3xl px-4 text-center sm:px-6">
           <h2 className="font-display text-3xl font-extrabold text-white sm:text-5xl text-balance">
