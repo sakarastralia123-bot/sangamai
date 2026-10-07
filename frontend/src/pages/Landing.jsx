@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import CinematicHero from '../components/CinematicHero';
+import ScrollOrb from '../components/ScrollOrb';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import Reveal from '../components/Reveal';
@@ -83,7 +84,10 @@ export default function Landing() {
       <Ticker />
 
       {/* ═══ 12 AI EMPLOYEES ═══ */}
-      <section id="employees" className="relative mx-auto max-w-7xl px-4 py-24 sm:px-6">
+      <section id="employees" className="relative overflow-hidden py-24">
+        {/* scroll-driven smart orb behind the grid (moves only while you scroll) */}
+        <ScrollOrb />
+        <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6">
         <SectionHeading
           eyebrow="The team you hire tonight"
           title={<>12 AI employees. Zero salary, zero sick leave, <span className="bg-gradient-to-r from-violet-400 to-cyan-300 bg-clip-text text-transparent">zero missed customers.</span></>}
@@ -111,6 +115,7 @@ export default function Landing() {
         <Reveal className="mt-10 text-center">
           <p className="text-sm text-slate-400">Not sure where to start? <a href="#demo" className="font-semibold text-cyan-300 underline underline-offset-4 hover:text-cyan-200">Get a free AI staffing plan →</a> we audit your missed messages and recommend 2–3 employees.</p>
         </Reveal>
+        </div>
       </section>
 
       {/* ═══ HOW IT WORKS + AI BRAIN ═══ */}
