@@ -278,7 +278,9 @@ export default function Landing() {
       </section>
 
       {/* ═══ TESTIMONIALS — social proof ═══ */}
-      <section className="mx-auto max-w-7xl px-4 py-24 sm:px-6">
+      <section className="relative overflow-hidden py-24">
+        <ScrollOrb align="right" tone={4} />
+        <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6">
         <SectionHeading eyebrow="Loved across the valley" title="Businesses like yours already stopped missing customers." />
         <div className="mt-12 grid gap-4 md:grid-cols-3">
           {TESTIMONIALS.map((t, i) => (
@@ -297,6 +299,7 @@ export default function Landing() {
               </figure>
             </Reveal>
           ))}
+        </div>
         </div>
       </section>
 
@@ -356,8 +359,9 @@ export default function Landing() {
       </section>
 
       {/* ═══ FAQ — objection busting ═══ */}
-      <section id="faq" className="relative overflow-hidden mx-auto max-w-3xl px-4 py-24 sm:px-6">
+      <section id="faq" className="relative overflow-hidden py-24">
         <ScrollOrb align="center" tone={6} />
+        <div className="relative z-10 mx-auto max-w-3xl px-4 sm:px-6">
         <SectionHeading eyebrow="Objections, answered" title="Fair questions. Straight answers." />
         <div className="mt-10 space-y-3">
           {FAQS.map((f, i) => {
@@ -374,6 +378,7 @@ export default function Landing() {
               </Reveal>
             );
           })}
+        </div>
         </div>
       </section>
 
