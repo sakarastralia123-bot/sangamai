@@ -2,6 +2,11 @@ const mongoose = require('mongoose');
 const { MongoMemoryServer } = require('mongodb-memory-server');
 const { connectDB } = require('../src/config/db');
 
+// Suite-wide: external breach API is never hit implicitly (empty range =
+// "not breached"). Tests covering the breach check install their own
+// global.fetch mock per-test.
+global.fetch = jest.fn(async () => ({ ok: true, text: async () => '' }));
+
 let mongoServer;
 
 beforeAll(async () => {

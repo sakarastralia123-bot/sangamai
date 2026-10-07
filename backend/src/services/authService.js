@@ -3,6 +3,7 @@ const { validatePasswordStrength } = require('../models/User');
 const { getClientIp, getUserAgent } = require('../utils/request');
 const { generateAccessToken, verifyAccessToken } = require('./tokenService');
 const { createSession, findValidSession, revokeSession, revokeSessionByToken, revokeAllUserSessions, rotateSession, detectTokenReuse, handleTokenReuse } = require('./sessionService');
+const { isPasswordBreached } = require('./breachService');
 const { sendPasswordResetEmail, sendPasswordChangeNotification, sendExistingUserNotification } = require('./emailService');
 const { rateLimit, password, frontendUrl } = require('../config/env');
 const ApiError = require('../utils/ApiError');
@@ -33,6 +34,15 @@ async function registerUser(data, req) {
   if (!validation.isValid) {
     authEvent('register_password_weak', { email: cleanEmail, ip, errors: validation.errors });
     throw ApiError.badRequest('Password does not meet requirements', validation.errors.map(e => ({ field: 'password', message: e })));
+  }
+
+  // Credential-stuffing defense (NIST SP 800-63B): refuse passwords already
+  // circulating in breach corpora — those are exactly what stuffing lists try.
+  if (await isPasswordBreached(plainPassword)) {
+    authEvent('register_password_breached', { email: cleanEmail, ip });
+    throw ApiError.badRequest('Password does not meet requirements', [
+      { field: 'password', message: 'This password has appeared in known data breaches, please choose a different one' },
+    ]);
   }
 
   const user = await User.create({
@@ -215,6 +225,13 @@ async function resetPassword(token, newPassword, req) {
   const validation = validatePasswordStrength(newPassword, { name: user.name, email: user.email, businessName: user.businessName });
   if (!validation.isValid) {
     throw ApiError.badRequest('Password does not meet requirements', validation.errors.map(e => ({ field: 'password', message: e })));
+  }
+
+  if (await isPasswordBreached(newPassword)) {
+    authEvent('reset_password_breached', { userId: user._id, ip });
+    throw ApiError.badRequest('Password does not meet requirements', [
+      { field: 'password', message: 'This password has appeared in known data breaches, please choose a different one' },
+    ]);
   }
 
   user.password = newPassword;

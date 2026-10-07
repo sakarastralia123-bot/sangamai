@@ -163,6 +163,55 @@ describe('Security Regression Tests', () => {
     });
   });
 
+  describe('Breach Screening (credential-stuffing defense)', () => {
+    const strongPw = 'Tr4v3l#Moonlight!88Qz';
+
+    const mockHibp = (plain) => {
+      const sha1 = crypto.createHash('sha1').update(plain, 'utf8').digest('hex').toUpperCase();
+      const realFetch = global.fetch;
+      global.fetch = jest.fn(async () => ({ ok: true, text: async () => `${sha1.slice(5)}:1047293\n` }));
+      const { clearBreachCache } = require('../src/services/breachService');
+      clearBreachCache();
+      return realFetch;
+    };
+
+    test('Breached password is rejected at registration', async () => {
+      const realFetch = mockHibp(strongPw);
+      try {
+        const res = await request(app).post('/api/auth/register').send({
+          name: 'Asha Sharma',
+          email: `breach${Date.now()}@example.com`,
+          password: strongPw,
+          confirmPassword: strongPw,
+          terms: true,
+        });
+        expect(res.status).toBe(400);
+        expect(JSON.stringify(res.body)).toMatch(/data breaches/);
+      } finally {
+        global.fetch = realFetch;
+      }
+    });
+
+    test('Registration proceeds when breach service is down (fail-open)', async () => {
+      const realFetch = global.fetch;
+      global.fetch = jest.fn(async () => { throw new Error('HIBP down'); });
+      const { clearBreachCache } = require('../src/services/breachService');
+      clearBreachCache();
+      try {
+        const res = await request(app).post('/api/auth/register').send({
+          name: 'Asha Sharma',
+          email: `failopen${Date.now()}@example.com`,
+          password: strongPw,
+          confirmPassword: strongPw,
+          terms: true,
+        });
+        expect(res.status).toBe(201);
+      } finally {
+        global.fetch = realFetch;
+      }
+    });
+  });
+
   describe('Rate Limiting', () => {
     test('Auth rate limit triggers after multiple attempts', async () => {
       const user = makeUniqueUser('ratelimit');
