@@ -42,14 +42,14 @@ export default function Landing() {
   const [contactSent, setContactSent] = useState(false);
 
   return (
-    <div className="relative min-h-screen bg-[#050505] text-slate-200">
+    <div className="relative min-h-screen bg-[#060810] text-slate-200">
       <Navbar />
 
       {/* ═══ HERO — cinematic scroll-linked 300-frame experience ═══ */}
       <CinematicHero />
 
       {/* trust + stats strip right under the cinema */}
-      <section className="relative border-b border-white/5 bg-[#050505] py-10">
+      <section className="relative border-b border-sky-400/10 bg-[#060810] py-10">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
           <Reveal>
             <div className="flex flex-wrap items-center justify-center gap-2">
@@ -114,7 +114,7 @@ export default function Landing() {
       </section>
 
       {/* ═══ HOW IT WORKS + AI BRAIN ═══ */}
-      <section id="how" className="relative border-y border-white/5 bg-[#08080c] py-24">
+      <section id="how" className="relative border-y border-white/5 bg-[#0a0f1c] py-24">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
           <SectionHeading
             eyebrow="From chaos to autopilot in 48 hours"
@@ -209,7 +209,7 @@ export default function Landing() {
       </section>
 
       {/* ═══ PRICING — anchoring + loss aversion ═══ */}
-      <section id="pricing" className="relative border-y border-white/5 bg-[#08080c] py-24">
+      <section id="pricing" className="relative border-y border-white/5 bg-[#0a0f1c] py-24">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
           <SectionHeading
             eyebrow="Pricing that pays for itself"
@@ -291,7 +291,7 @@ export default function Landing() {
       </section>
 
       {/* ═══ DEMO + CONTACT ═══ */}
-      <section id="demo" className="relative border-t border-white/5 bg-[#08080c] py-24">
+      <section id="demo" className="relative border-t border-white/5 bg-[#0a0f1c] py-24">
         <div className="mx-auto grid max-w-7xl gap-6 px-4 sm:px-6 lg:grid-cols-2">
           <Reveal>
             <div className="card-glass h-full p-7 sm:p-8">

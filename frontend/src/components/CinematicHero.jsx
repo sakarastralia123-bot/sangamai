@@ -113,11 +113,10 @@ export default function CinematicHero() {
     };
   }, []);
 
-  /* scroll-linked 300-frame engine */
+  /* 300-frame ambient engine — autoplay ping-pong loop (page scrolls freely) */
   useEffect(() => {
-    const container = containerRef.current;
     const canvas = canvasRef.current;
-    if (!container || !canvas) return;
+    if (!canvas) return;
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const ctx = canvas.getContext('2d', { alpha: false, desynchronized: true });
     const frames = new Array(FRAME_COUNT);
@@ -125,9 +124,11 @@ export default function CinematicHero() {
     let target = 0;
     let current = 0;
     let drawn = -1;
-    let scrollRaf = 0;
     let renderRaf = 0;
+    let loopRaf = 0;
     let dead = false;
+    const startedAt = performance.now();
+    const LOOP_MS = 36000;
 
     const resize = () => {
       const rect = canvas.getBoundingClientRect();
@@ -164,22 +165,14 @@ export default function CinematicHero() {
       if (Math.abs(target - current) > 0.025) renderRaf = requestAnimationFrame(render);
     };
 
-    const update = () => {
-      const rect = container.getBoundingClientRect();
-      const dist = container.offsetHeight - window.innerHeight;
-      if (dist <= 0) return;
-      const p = Math.min(1, Math.max(0, -rect.top / dist));
-      target = p * (FRAME_COUNT - 1);
-      if (textRef.current) {
-        textRef.current.style.opacity = String(Math.max(0, 1 - p * 2.5));
-        textRef.current.style.transform = `translateY(${p * -50}px)`;
-      }
+    /* gentle ping-pong through all frames — cinema without trapping scroll */
+    const loop = () => {
+      if (dead) return;
+      const t = ((performance.now() - startedAt) % LOOP_MS) / LOOP_MS;
+      const pingPong = t < 0.5 ? t * 2 : 2 - t * 2;
+      target = pingPong * (FRAME_COUNT - 1);
       if (!renderRaf) renderRaf = requestAnimationFrame(render);
-    };
-
-    const onScroll = () => {
-      if (scrollRaf) return;
-      scrollRaf = requestAnimationFrame(() => { scrollRaf = 0; update(); });
+      loopRaf = requestAnimationFrame(loop);
     };
 
     const loadOne = (i) => new Promise((resolve) => {
@@ -214,23 +207,20 @@ export default function CinematicHero() {
         loadingRef.current.classList.add('loaded');
         setTimeout(() => { if (loadingRef.current) loadingRef.current.style.display = 'none'; }, 550);
       }
-      update();
     };
 
-    window.addEventListener('scroll', onScroll, { passive: true });
     window.addEventListener('resize', resize, { passive: true });
     resize();
     if (reduced) {
       loadOne(0);
     } else {
       preload();
+      loopRaf = requestAnimationFrame(loop);
     }
-    update();
     return () => {
       dead = true;
-      window.removeEventListener('scroll', onScroll);
       window.removeEventListener('resize', resize);
-      cancelAnimationFrame(scrollRaf);
+      cancelAnimationFrame(loopRaf);
       cancelAnimationFrame(renderRaf);
     };
   }, []);
@@ -277,32 +267,38 @@ export default function CinematicHero() {
           <div className="optical-flare-beam animate-beam-drift" id="interactive-flare" />
           <div className="secondary-haze" id="interactive-haze" />
 
-          {/* hero text */}
+          {/* hero text — trust-navy glass: safety + premium depth */}
           <div className="relative z-30 max-w-4xl mx-auto px-4 text-center hero-text-container" ref={textRef}>
-            <div className="bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-[#050505]/90 via-[#050505]/70 to-transparent rounded-3xl p-8">
+            <div className="bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-[#0a1628]/92 via-[#0a1628]/72 to-transparent rounded-3xl p-8 border border-sky-400/10">
               <h1 className="text-4xl sm:text-6xl font-extrabold text-white tracking-tight leading-tight mb-4 drop-shadow-[0_4px_24px_rgba(0,0,0,0.9)]">
                 Inference at the Edge
               </h1>
-              <p className="max-w-2xl mx-auto text-sm sm:text-base text-zinc-200 font-normal leading-relaxed mb-6 drop-shadow-[0_2px_12px_rgba(0,0,0,0.9)]">
+              <p className="max-w-2xl mx-auto text-sm sm:text-base text-slate-300 font-normal leading-relaxed mb-6 drop-shadow-[0_2px_12px_rgba(0,0,0,0.9)]">
                 Boost your business speed and efficiency globally and locally in Nepal by bringing autonomous AI employees
                 directly into WhatsApp, Instagram, CRM, and omnichannel nodes. Native Devanagari &amp; Romanized NLP with
                 sub-300ms Kathmandu edge latency.
               </p>
-              <div className="flex flex-row items-center justify-center gap-3.5">
-                <Link to="/register" className="px-8 py-3 rounded-full bg-gradient-to-r from-[#FF4D00] to-[#FF6B00] hover:from-[#ff5e1a] hover:to-[#ff7b1a] text-white font-medium text-sm shadow-[0_0_22px_rgba(255,77,0,0.5)] transition-all duration-200 transform hover:-translate-y-0.5">
-                  Get started
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-3.5">
+                <Link to="/register" className="px-9 py-3.5 rounded-full bg-gradient-to-r from-[#FF4D00] to-[#FF6B00] hover:from-[#ff5e1a] hover:to-[#ff7b1a] text-white font-semibold text-sm shadow-[0_0_28px_rgba(255,77,0,0.55)] transition-all duration-200 transform hover:-translate-y-0.5">
+                  Get started — it&apos;s free
                 </Link>
-                <a href="#demo" className="px-8 py-3 rounded-full bg-[#16161b]/90 hover:bg-[#202028] border border-slate-700/60 hover:border-slate-500 text-slate-200 font-medium text-sm backdrop-blur-md transition-all duration-200 flex items-center justify-center gap-1.5">
-                  <span>Book a demo</span>
-                  <svg className="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
+                <a href="#employees" className="px-8 py-3 rounded-full bg-sky-400/5 hover:bg-sky-400/10 border border-sky-400/25 hover:border-sky-300/50 text-sky-200 font-medium text-sm backdrop-blur-md transition-all duration-200 flex items-center justify-center gap-1.5">
+                  <span>Explore AI employees</span>
+                  <svg className="w-3.5 h-3.5 text-sky-300" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M12 5v14M5 12l7 7 7-7" /></svg>
                 </a>
+              </div>
+              {/* safety cues: risk reversal beside the spend trigger */}
+              <div className="mt-5 flex flex-wrap items-center justify-center gap-x-5 gap-y-1.5 text-[12.5px]">
+                <span className="flex items-center gap-1.5 text-emerald-300"><span className="material-symbols-outlined text-[16px]">shield</span> No credit card</span>
+                <span className="flex items-center gap-1.5 text-emerald-300"><span className="material-symbols-outlined text-[16px]">verified</span> 14-day money-back</span>
+                <span className="flex items-center gap-1.5 text-sky-300"><span className="material-symbols-outlined text-[16px]">support_agent</span> Nepali support</span>
               </div>
             </div>
           </div>
 
           {/* circuit schematic */}
           <div className="relative max-w-5xl mx-auto px-4 mt-8" data-purpose="circuit-neural-schematic" id="architecture">
-            <div className="relative w-full h-[480px] sm:h-[500px] bg-[#0a0a0f]/20 backdrop-blur-[2px] rounded-3xl border border-white/10 overflow-hidden shadow-[0_0_80px_rgba(0,0,0,0.5)]" id="circuit-stage-card">
+            <div className="relative w-full h-[480px] sm:h-[500px] bg-[#0a1628]/25 backdrop-blur-[2px] rounded-3xl border border-sky-400/20 overflow-hidden shadow-[0_0_80px_rgba(56,189,248,0.12),0_0_80px_rgba(0,0,0,0.5)]" id="circuit-stage-card">
               <div className="absolute inset-0 bg-[radial-gradient(#27263d_1px,transparent_1px)] [background-size:24px_24px] opacity-20 pointer-events-none" id="circuit-grid-pattern" />
               <svg className="absolute inset-0 w-full h-full pointer-events-none" fill="none" viewBox="0 0 1000 460" xmlns="http://www.w3.org/2000/svg">
                 <defs>

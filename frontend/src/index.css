@@ -26,7 +26,7 @@
 
   body {
     font-family: 'Inter', system-ui, sans-serif;
-    background-color: #050505;
+    background-color: #060810; /* trust-navy: calm, safe, premium */
     color: #e2e8f0;
     overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
@@ -174,21 +174,23 @@
     display: none;
   }
 
-  /* ── Cinematic scroll hero ─────────────────────────────── */
+  /* ── Cinematic hero (normal document flow — scrolls away naturally) ── */
   #hero-dashboard-container {
     position: relative;
-    min-height: 420vh;
     isolation: isolate;
-    background: #050505;
+    background: #060810; /* trust-navy base: safety + premium depth */
   }
   #hero-dashboard-container > section[data-purpose="hero-banner"] {
-    position: sticky;
-    top: 0;
-    height: 100vh;
-    min-height: 700px;
+    position: relative;
+    min-height: 100vh;
     overflow: hidden;
     isolation: isolate;
-    background: #050505;
+    background: #060810;
+    padding-top: 128px; /* clears the fixed navbar — no overlap bleed */
+    padding-bottom: 56px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
   }
   #scroll-frame-background {
     position: absolute;
@@ -304,8 +306,7 @@
   .blend-logo-clean { mix-blend-mode: screen; background: transparent !important; border: none !important; outline: none !important; box-shadow: none !important; filter: contrast(1.15) brightness(1.08); user-select: none; -webkit-user-drag: none; }
 
   @media (max-width: 768px) {
-    #hero-dashboard-container { min-height: 320vh; }
-    #hero-dashboard-container > section[data-purpose="hero-banner"] { min-height: 650px; }
+    #hero-dashboard-container > section[data-purpose="hero-banner"] { min-height: 650px; padding-top: 112px; }
     #spotlight-mask { display: none; }
   }
   @media (prefers-reduced-motion: reduce) {
