@@ -1,9 +1,10 @@
-import { useEffect, useRef, useState } from 'react';
+import { Suspense, lazy, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 
+// Three.js loads async — hero text + aura paint instantly, the bot fades in when ready.
+const OrbBot = lazy(() => import('./OrbBot'));
+
 const LOGO_INTRO = 'https://lh3.googleusercontent.com/aida-public/AB6AXuBDaNHUwUAso5g3wjXNo8iisJmpPWEydtAUQ5UFhGmxP9XUYsLhR4-yRWXAHm34BkRiEXlnd1zbcZhnf-TBEDzV-tKwp9_Mic18OwN1vFyjKEha3hH_g72NkzLWncIQ7kqJiRFRnmmybvpH9h0a0zLv5pZ2L4e5EfxSuq0IWjEHmZoRh_DdY9LeHMrs32K-35Wt2hk0av-5qtqGYJ4eGer9vEzGRg4WVJkgu2JN0hkVwixAZghKM3l_H5Z5GXnM1jqIOQ';
-const FRAME_COUNT = 300;
-const framePath = (i) => `frames/ezgif-frame-${String(i + 1).padStart(3, '0')}.png`;
 
 const PULSES = [
   { track: 'track-whatsapp', color: '#34d399' },
@@ -31,23 +32,17 @@ function Node({ className, style, icon, label, dot }) {
 }
 
 /**
- * Cinematic scroll-linked hero.
+ * Cinematic hero.
  *  - Intro overlay (logo + wordmark, auto-dismiss, reduced-motion safe)
- *  - 300-frame canvas scrubbed by scroll (brightened: full-bleed, lifted vignette)
+ *  - Interactive OrbBot 3D backdrop (cursor-tracking eyes, drag to spin, click to wink)
  *  - Circuit schematic with synchronized node glow + travelling pulses
  *  - Mouse parallax (aura, flare, haze, orbs, spotlight)
- * Falls back to a gradient + circuit if frames are missing.
  */
 export default function CinematicHero() {
   const containerRef = useRef(null);
-  const canvasRef = useRef(null);
   const textRef = useRef(null);
-  const progressRef = useRef(null);
-  const loadingRef = useRef(null);
   const spotlightRef = useRef(null);
   const [introGone, setIntroGone] = useState(false);
-  const [framesOk, setFramesOk] = useState(true);
-  const [loadPct, setLoadPct] = useState(0);
 
   /* intro safety: never trap the user behind the overlay */
   useEffect(() => {
@@ -113,117 +108,8 @@ export default function CinematicHero() {
     };
   }, []);
 
-  /* 300-frame ambient engine — autoplay ping-pong loop (page scrolls freely) */
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const ctx = canvas.getContext('2d', { alpha: false, desynchronized: true });
-    const frames = new Array(FRAME_COUNT);
-    let loaded = 0;
-    let target = 0;
-    let current = 0;
-    let drawn = -1;
-    let renderRaf = 0;
-    let loopRaf = 0;
-    let dead = false;
-    const startedAt = performance.now();
-    const LOOP_MS = 36000;
-
-    const resize = () => {
-      const rect = canvas.getBoundingClientRect();
-      const dpr = Math.min(window.devicePixelRatio || 1, 2.5);
-      canvas.width = Math.max(1, Math.round(rect.width * dpr));
-      canvas.height = Math.max(1, Math.round(rect.height * dpr));
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      ctx.imageSmoothingEnabled = true;
-      ctx.imageSmoothingQuality = 'high';
-      draw(Math.round(current));
-    };
-
-    // BRIGHT background: opaque, lifted exposure so frames read fully.
-    const draw = (index) => {
-      const img = frames[index];
-      if (!img || !img.complete || !img.naturalWidth) return;
-      const w = canvas.clientWidth;
-      const h = canvas.clientHeight;
-      if (!w || !h) return;
-      ctx.fillStyle = '#050505';
-      ctx.fillRect(0, 0, w, h);
-      const s = Math.max(w / img.naturalWidth, h / img.naturalHeight);
-      const dw = img.naturalWidth * s;
-      const dh = img.naturalHeight * s;
-      ctx.drawImage(img, (w - dw) * 0.5, (h - dh) * 0.5, dw, dh);
-      drawn = index;
-    };
-
-    const render = () => {
-      renderRaf = 0;
-      current += (target - current) * 0.22;
-      const fi = Math.round(current);
-      if (fi !== drawn) draw(fi);
-      if (Math.abs(target - current) > 0.025) renderRaf = requestAnimationFrame(render);
-    };
-
-    /* gentle ping-pong through all frames — cinema without trapping scroll */
-    const loop = () => {
-      if (dead) return;
-      const t = ((performance.now() - startedAt) % LOOP_MS) / LOOP_MS;
-      const pingPong = t < 0.5 ? t * 2 : 2 - t * 2;
-      target = pingPong * (FRAME_COUNT - 1);
-      if (!renderRaf) renderRaf = requestAnimationFrame(render);
-      loopRaf = requestAnimationFrame(loop);
-    };
-
-    const loadOne = (i) => new Promise((resolve) => {
-      const img = new Image();
-      img.decoding = 'async';
-      if (i < 30) img.fetchPriority = 'high';
-      img.onload = () => {
-        frames[i] = img;
-        loaded += 1;
-        setLoadPct(Math.round((loaded / FRAME_COUNT) * 100));
-        if (i === 0) draw(0);
-        resolve();
-      };
-      img.onerror = () => {
-        loaded += 1;
-        if (i === 0) setFramesOk(false); // missing assets → gradient fallback
-        resolve();
-      };
-      img.src = framePath(i);
-    });
-
-    const preload = async () => {
-      const batch = 10;
-      for (let s = 0; s < FRAME_COUNT; s += batch) {
-        if (dead) return;
-        const jobs = [];
-        for (let i = s; i < Math.min(s + batch, FRAME_COUNT); i++) jobs.push(loadOne(i));
-        await Promise.all(jobs);
-        if (s === 0) resize();
-      }
-      if (loadingRef.current) {
-        loadingRef.current.classList.add('loaded');
-        setTimeout(() => { if (loadingRef.current) loadingRef.current.style.display = 'none'; }, 550);
-      }
-    };
-
-    window.addEventListener('resize', resize, { passive: true });
-    resize();
-    if (reduced) {
-      loadOne(0);
-    } else {
-      preload();
-      loopRaf = requestAnimationFrame(loop);
-    }
-    return () => {
-      dead = true;
-      window.removeEventListener('resize', resize);
-      cancelAnimationFrame(loopRaf);
-      cancelAnimationFrame(renderRaf);
-    };
-  }, []);
+  /* Hero backdrop is the interactive OrbBot (Three.js) — no frame assets,
+     no preload, no scroll engine. Eyes follow the visitor's cursor. */
 
   return (
     <>
@@ -247,21 +133,14 @@ export default function CinematicHero() {
 
       <div id="hero-dashboard-container" ref={containerRef}>
         <section className="relative overflow-hidden" data-purpose="hero-banner">
-          {/* frame background (bright) or gradient fallback */}
+          {/* orb-bot background (interactive 3D) + dark aura fallback */}
           <div id="scroll-frame-background" aria-hidden="true">
-            {framesOk ? (
-              <canvas id="scroll-frame-canvas" ref={canvasRef} />
-            ) : (
-              <div className="absolute inset-0 bg-[radial-gradient(ellipse_70%_60%_at_50%_35%,rgba(124,58,237,0.28),rgba(5,5,5,0.9)_75%)]" />
-            )}
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_70%_60%_at_50%_35%,rgba(124,58,237,0.20),rgba(5,5,5,0.9)_78%)]" />
+            <Suspense fallback={null}>
+              <OrbBot />
+            </Suspense>
             <div id="spotlight-mask" ref={spotlightRef} />
             <div id="scroll-frame-vignette" />
-            {framesOk && (
-              <div id="scroll-frame-loading" ref={loadingRef}>
-                <div id="scroll-frame-loading-label">LOADING EXPERIENCE</div>
-                <div id="scroll-frame-progress" ref={progressRef}>{loadPct}%</div>
-              </div>
-            )}
           </div>
 
           <div className="optical-flare-beam animate-beam-drift" id="interactive-flare" />

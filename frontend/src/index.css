@@ -200,19 +200,9 @@
     pointer-events: none;
     background: #050505;
   }
-  /* BRIGHT canvas: fully opaque, lifted exposure — background fully seen */
-  #scroll-frame-canvas {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    display: block;
-    object-fit: cover;
-    opacity: 1;
-    filter: contrast(1.12) saturate(1.25) brightness(1.15);
-    image-rendering: high-quality;
-    will-change: contents;
-    z-index: 1;
+  /* orb-bot canvas: interactive island inside the click-through backdrop */
+  #scroll-frame-background canvas {
+    pointer-events: auto;
   }
   /* softened spotlight: gentle lift around cursor, barely darkens edges */
   #spotlight-mask {
@@ -236,21 +226,6 @@
     pointer-events: none;
     background: radial-gradient(circle at 50% 50%, transparent 0%, rgba(5,5,5,0.25) 70%, rgba(5,5,5,0.75) 100%);
   }
-  #scroll-frame-loading {
-    position: absolute;
-    inset: 0;
-    z-index: 20;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    background: #050505;
-    transition: opacity 0.55s ease;
-  }
-  #scroll-frame-loading.loaded { opacity: 0; visibility: hidden; }
-  #scroll-frame-loading-label { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.2em; color: rgba(255,255,255,0.4); }
-  #scroll-frame-progress { font-family: 'Space Grotesk', sans-serif; font-size: 32px; font-weight: 800; color: #fff; }
   .hero-text-container { transition: opacity 0.3s ease, transform 0.3s ease; }
 
   /* circuit tracks + synchronized node glow */
