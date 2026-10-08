@@ -49,10 +49,23 @@ export default function OrbBot() {
       m.lookAt(0, 0, 0);
       envScene.add(m);
     };
-    softbox(14, 8, 0, 14, 5, 2.6);
-    softbox(5, 14, -14, 3, 6, 1.5);
-    softbox(5, 14, 14, 3, 6, 1.3);
-    softbox(18, 4, 0, -2, 16, 1.0);
+    softbox(14, 8, 0, 14, 5, 1.6);
+    softbox(5, 14, -14, 3, 6, 1.1);
+    softbox(5, 14, 14, 3, 6, 0.9);
+    softbox(18, 4, 0, -2, 16, 0.7);
+    // tinted rims — violet left, cyan right: solid chrome with brand reflections
+    const rim = (w, h, x, y, z, r, g, b) => {
+      const m = new THREE.Mesh(
+        new THREE.PlaneGeometry(w, h),
+        new THREE.MeshBasicMaterial({ color: new THREE.Color(r, g, b), side: THREE.DoubleSide })
+      );
+      m.position.set(x, y, z);
+      m.lookAt(0, 0, 0);
+      envScene.add(m);
+    };
+    rim(6, 16, -15, 2, 4, 1.4, 0.7, 2.6);
+    rim(6, 16, 15, 2, 4, 0.5, 1.9, 2.4);
+    rim(16, 5, 0, 12, -8, 0.9, 0.8, 1.8);
     const pmrem = new THREE.PMREMGenerator(renderer);
     scene.environment = pmrem.fromScene(envScene, 0.03).texture;
 
@@ -60,7 +73,8 @@ export default function OrbBot() {
     const robot = new THREE.Group();
     scene.add(robot);
 
-    const metal = new THREE.MeshStandardMaterial({ color: 0x9a9da3, metalness: 1, roughness: 0.24, envMapIntensity: 1.0 });
+    // solid chrome: darker base + tighter reflections so it reads as metal, not glass
+    const metal = new THREE.MeshStandardMaterial({ color: 0x74777e, metalness: 1, roughness: 0.16, envMapIntensity: 0.85 });
     robot.add(new THREE.Mesh(new THREE.SphereGeometry(1, 96, 64, 0, Math.PI * 2, 0, 2.65), metal));
 
     const PHI = 1.92;
@@ -68,7 +82,7 @@ export default function OrbBot() {
     const THL = 0.5 * Math.PI;
     const panel = new THREE.Mesh(
       new THREE.SphereGeometry(1.012, 96, 48, Math.PI / 2 - PHI / 2, PHI, TH0, THL),
-      new THREE.MeshPhysicalMaterial({ color: 0x777a80, metalness: 1, roughness: 0.22, clearcoat: 0, envMapIntensity: 0.95 })
+      new THREE.MeshPhysicalMaterial({ color: 0x2e3138, metalness: 1, roughness: 0.28, clearcoat: 0, envMapIntensity: 0.8 })
     );
     panel.material.side = THREE.FrontSide;
     robot.add(panel);
@@ -158,7 +172,7 @@ export default function OrbBot() {
 
     /* ----- interaction: eyes follow the page cursor, drag spins (mouse/pen) ----- */
     let yaw = 0, pitch = 0, vy = 0, dragging = false, lastX = 0, lastY = 0, lastInput = -1e9;
-    let baseX = 0; // desktop: bot sits right of the headline; mobile: centered
+    const BASE_Y = -0.55; // face clears the headline panel, body overlaps the circuit top
 
     const onDown = (e) => {
       if (e.pointerType === 'touch') return; // touch scrolls the page, never drags
@@ -191,8 +205,7 @@ export default function OrbBot() {
       if (!w || !h) return;
       renderer.setSize(w, h, false);
       camera.aspect = w / h;
-      camera.position.z = w / h < 0.8 ? 9.2 / Math.max(0.55, (w / h) * 1.15) : 9.2;
-      baseX = w / h > 1.1 ? 1.55 : 0; // park right of the headline on desktop
+      camera.position.z = w / h < 0.8 ? 8.4 / Math.max(0.55, (w / h) * 1.15) : 8.4;
       camera.updateProjectionMatrix();
     };
 
@@ -225,10 +238,10 @@ export default function OrbBot() {
       lookX += (tx - lookX) * 0.12;
       lookY += (ty - lookY) * 0.12;
       robot.rotation.set(pitch + lookY * 0.16, yaw + lookX * 0.26, 0);
-      robot.position.set(baseX, bob + 0.05, 0);
+      robot.position.set(0, BASE_Y + bob + 0.05, 0); // dead center
       const k = 1 - bob * 1.1;
       shadow.scale.set(k * 1.15, k, k);
-      shadow.position.x = baseX;
+      shadow.position.y = -1.75 + BASE_Y;
       shadow.material.opacity = 0.9 - bob * 2;
 
       if (!reduce && now > nextBlink && blinkStart < 0) blink();
